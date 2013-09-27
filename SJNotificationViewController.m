@@ -1,13 +1,13 @@
 /*
-Copyright (c) <YEAR>, <OWNER>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ Copyright (c) 2013, Scott Jackson
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ 
+ Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #import "SJNotificationViewController.h"
 #import <QuartzCore/QuartzCore.h>
@@ -35,32 +35,34 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
     return self;
 }
 
-- (void)didReceiveMemoryWarning
-{
-    // Releases the view if it doesn't have a superview.
-    [super didReceiveMemoryWarning];
-    
-    // Release any cached data, images, etc that aren't in use.
+- (id)initWithParentView:(UIView*)p title:(NSString*)t level:(SJNotificationLevel)l position:(SJNotificationPosition)pos spinner:(BOOL)sp {
+    self = [super initWithNibName:@"SJNotificationViewController" bundle:nil];
+    if (self) {
+        [self setParentView:p];
+        [self setNotificationTitle:t];
+        [self setNotificationLevel:l];
+        [self setNotificationPosition:pos];
+        [self setShowSpinner:sp];
+    }
+    return self;
 }
 
 #pragma mark - Showing/Hiding the Notification
 
 - (void)show {
-	NSLog(@"showing notification view");
+	self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 	
-	/* Attach to the bottom of the parent view. */
+	/* Attach to the parent view. */
 	CGFloat yPosition;
-    
-    switch (notificationPosition) {
-        case SJNotificationPositionTop:
-            yPosition = self.view.frame.size.height * -1;
-            break;
-            
-        default:
-            yPosition = [parentView frame].size.height;
-
-            break;
-    }
+	switch (notificationPosition) {
+		case SJNotificationPositionTop:
+			yPosition = self.view.frame.size.height * -1;
+			break;
+		case SJNotificationPositionBottom:
+			yPosition = [parentView frame].size.height;
+		default:
+			break;
+	}
 	
 	[self.view setFrame:CGRectMake(0, yPosition, self.view.frame.size.width, self.view.frame.size.height)];
 	[label setTextColor:textColor];
@@ -68,7 +70,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 	
 	[UIView animateWithDuration:SLIDE_DURATION
 					 animations:^{
-						 /* Slide the notification view up. */
+						 /* Slide the notification view into place. */
 						 CGRect shownRect = CGRectMake(0,
 													   [self yPositionWhenHidden:NO],
 													   self.view.frame.size.width,
@@ -80,20 +82,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 }
 
 - (void)hide {
-	NSLog(@"hiding notification view");
-  if (!self.view.superview) {
-    return;
-  }
-  
+    if (!self.view.superview) {
+        return;
+    }
+    
 	[UIView animateWithDuration:SLIDE_DURATION
 					 animations:^{
-						 /* Slide the notification view down. */
+						 /* Slide the notification view out of place. */
 						 [self.view setFrame:CGRectMake(0, [self yPositionWhenHidden:YES], self.view.frame.size.width, self.view.frame.size.height)];
 					 }
 					 completion:^(BOOL finished) {
 						 [self.view removeFromSuperview];
 					 }
-	];
+     ];
 }
 
 #pragma mark - Calculating position
@@ -112,7 +113,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
                 y = [parentView frame].size.height;
                 break;
         }
-    // when shown
+        // when shown
     } else {
         switch (notificationPosition) {
             case SJNotificationPositionTop:
@@ -161,8 +162,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 			break;
 		case SJNotificationLevelMessage:
 			color = [UIColor colorWithRed:((float)((MESSAGE_HEX_COLOR & 0xFF0000) >> 16))/255.0
-											green:((float)((MESSAGE_HEX_COLOR & 0xFF00) >> 8))/255.0
-											 blue:((float)(MESSAGE_HEX_COLOR & 0xFF))/255.0 alpha:NOTIFICATION_VIEW_OPACITY];
+                                    green:((float)((MESSAGE_HEX_COLOR & 0xFF00) >> 8))/255.0
+                                     blue:((float)(MESSAGE_HEX_COLOR & 0xFF))/255.0 alpha:NOTIFICATION_VIEW_OPACITY];
 			break;
 		case SJNotificationLevelSuccess:
 			color = [UIColor colorWithRed:((float)((SUCCESS_HEX_COLOR & 0xFF0000) >> 16))/255.0
@@ -192,7 +193,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 - (void)setShowSpinner:(BOOL)b {
 	showSpinner = b;
 	if (showSpinner) {
-		NSLog(@"spinner showing");
 		[spinner.layer setOpacity:1.0];
 		[UIView animateWithDuration:LABEL_RESIZE_DURATION
 						 animations:^{
@@ -201,9 +201,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 						 completion:^(BOOL finished) {
 							 [spinner startAnimating];
 						 }
-		];
+         ];
 	} else {
-		NSLog(@"spinner not showing");
 		[spinner stopAnimating];
 		[spinner.layer setOpacity:0.0];
 		[UIView animateWithDuration:LABEL_RESIZE_DURATION
@@ -222,7 +221,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
     {
         NSTimer *notificationTimer;
         notificationTimer = [NSTimer scheduledTimerWithTimeInterval:seconds target:self
-                                                       selector:@selector(notificationTimerHide) userInfo:nil repeats:NO];
+                                                           selector:@selector(notificationTimerHide) userInfo:nil repeats:NO];
         [self show];
     }
     else
